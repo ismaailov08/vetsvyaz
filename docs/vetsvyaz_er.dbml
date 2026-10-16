@@ -1,0 +1,124 @@
+Table accounts_user {
+  id bigint [pk, note: "ID"]
+  username varchar(150) [not null, unique, note: "имя пользователя"]
+  role varchar(10) [not null, note: "роль"]
+  phone varchar(20) [note: "телефон"]
+  Note: "пользователь"
+}
+
+Table accounts_farmer {
+  id bigint [pk, note: "ID"]
+  user_id integer [not null, unique, note: "пользователь"]
+  farm_name varchar(120) [not null, note: "хозяйство"]
+  district varchar(160) [not null, note: "район"]
+  Note: "фермер"
+}
+
+Table accounts_vet {
+  id bigint [pk, note: "ID"]
+  user_id integer [not null, unique, note: "пользователь"]
+  specialization varchar(120) [not null, note: "специализация"]
+  license varchar(20) [not null, unique, note: "номер лицензии"]
+  Note: "ветврач"
+}
+
+Table farms_animal {
+  id bigint [pk, note: "ID"]
+  farmer_id integer [not null, note: "владелец"]
+  tag varchar(12) [not null, unique, note: "бирка (ИНЖ)"]
+  name varchar(60) [not null, note: "кличка"]
+  species varchar(10) [not null, note: "вид"]
+  breed varchar(80) [note: "порода"]
+  sex varchar(1) [not null, note: "пол"]
+  born date [not null, note: "дата рождения"]
+  weight_kg decimal(6,1) [not null, note: "живой вес, кг"]
+  status varchar(12) [not null, note: "статус"]
+  photo image (файл) [note: "фото"]
+  created datetime [note: "добавлено"]
+  Note: "животное"
+}
+
+Table farms_vaccination {
+  id bigint [pk, note: "ID"]
+  animal_id integer [not null, note: "животное"]
+  vaccine varchar(120) [not null, note: "вакцина"]
+  done_on date [not null, note: "дата прививки"]
+  next_on date [not null, note: "следующая прививка"]
+  batch varchar(30) [note: "серия"]
+  Note: "вакцинация"
+}
+
+Table consultations_consultation {
+  id bigint [pk, note: "ID"]
+  farmer_id integer [not null, note: "фермер"]
+  vet_id integer [not null, note: "ветврач"]
+  animal_id integer [not null, note: "животное"]
+  kind varchar(6) [not null, note: "формат"]
+  scheduled_at datetime [not null, note: "дата и время"]
+  complaint text [not null, note: "жалоба / симптомы"]
+  status varchar(10) [not null, note: "статус"]
+  diagnosis varchar(200) [note: "диагноз"]
+  conclusion text [note: "заключение врача"]
+  created datetime [note: "создано"]
+  Note: "консультация"
+}
+
+Table consultations_prescription {
+  id bigint [pk, note: "ID"]
+  consultation_id integer [not null, note: "консультация"]
+  drug varchar(120) [not null, note: "препарат"]
+  dose varchar(120) [not null, note: "доза и способ"]
+  days smallint [not null, note: "курс, дней"]
+  withdrawal_days smallint [not null, note: "срок ожидания (молоко/мясо), дней"]
+  Note: "назначение"
+}
+
+Table notifications_notification {
+  id bigint [pk, note: "ID"]
+  user_id integer [not null, note: "получатель"]
+  text varchar(255) [not null, note: "текст"]
+  url varchar(200) [note: "ссылка"]
+  is_read bool [not null, note: "прочитано"]
+  created datetime [note: "время"]
+  Note: "уведомление"
+}
+
+Table twin_sensor {
+  id bigint [pk, note: "ID"]
+  animal_id integer [not null, unique, note: "животное"]
+  serial varchar(30) [not null, unique, note: "серийный номер"]
+  installed date [not null, note: "установлен"]
+  Note: "датчик"
+}
+
+Table twin_reading {
+  id bigint [pk, note: "ID"]
+  sensor_id integer [not null, note: "датчик"]
+  taken_at datetime [not null, note: "время замера"]
+  temperature decimal(4,1) [not null, note: "температура, °C"]
+  heart_rate smallint [not null, note: "пульс, уд/мин"]
+  activity int [not null, note: "активность, шагов/ч"]
+  rumination smallint [not null, note: "жвачка, мин/ч"]
+  Note: "показание"
+}
+
+Ref: accounts_farmer.user_id - accounts_user.id
+
+Table accounts_farmer_vets {
+  id integer [pk]
+  farmer_id integer [not null]
+  vet_id integer [not null]
+  Note: "связующая таблица Many-to-Many"
+}
+Ref: accounts_farmer_vets.farmer_id > accounts_farmer.id
+Ref: accounts_farmer_vets.vet_id > accounts_vet.id
+Ref: accounts_vet.user_id - accounts_user.id
+Ref: farms_animal.farmer_id > accounts_farmer.id
+Ref: farms_vaccination.animal_id > farms_animal.id
+Ref: consultations_consultation.farmer_id > accounts_farmer.id
+Ref: consultations_consultation.vet_id > accounts_vet.id
+Ref: consultations_consultation.animal_id > farms_animal.id
+Ref: consultations_prescription.consultation_id > consultations_consultation.id
+Ref: notifications_notification.user_id > accounts_user.id
+Ref: twin_sensor.animal_id - farms_animal.id
+Ref: twin_reading.sensor_id > twin_sensor.id

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<section class="auth card">
+  <div class="logo big">✚</div>
+  <h1>ВетСвязь</h1>
+  <p class="muted">Ветеринарная телемедицина для фермеров</p>
+  <form method="post">{% csrf_token %}
+    {% for field in form %}{% include "includes/_field.html" %}{% endfor %}
+    {% if form.non_field_errors %}<p class="error">Неверный логин или пароль</p>{% endif %}
+    <button class="btn wide">Войти</button>
+  </form>
+  <p>Нет аккаунта? <a href="{% url 'accounts:register' %}">Регистрация фермера</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Консультация{% endblock %}
+{% block content %}
+<div class="head"><div><h1>{{ c.animal.name }} · {{ c.scheduled_at|date:"d.m.Y H:i" }}</h1>
+  <p class="muted">{{ c.get_kind_display }} · врач {{ c.vet }} · {{ c.farmer }}</p></div>
+  <div class="actions">
+  {% if c.status == "scheduled" %}
+    <a class="btn" href="{% url 'consultations:call' c.pk %}">Подключиться к звонку</a>
+    {% if user.is_vet %}<a class="btn ghost" href="{% url 'consultations:conclude' c.pk %}">Написать заключение</a>{% endif %}
+    <button class="btn danger" data-open="cancel-modal">Отменить</button>
+  {% elif c.status == "done" %}<a class="btn" href="{% url 'consultations:report' c.pk %}" target="_blank">Печать заключения</a>{% endif %}
+  </div></div>
+<div class="cols">
+  <section class="card"><h2>Жалоба</h2><p>{{ c.complaint }}</p>
+    <span class="pill {{ c.status }}">{{ c.get_status_display }}</span></section>
+  {% if c.status == "done" %}<section class="card"><h2>Заключение</h2><p><b>Диагноз:</b> {{ c.diagnosis }}</p><p>{{ c.conclusion }}</p>
+    {% for p in c.prescriptions.all %}<p class="rx">💊 {{ p.drug }} — {{ p.dose }}, {{ p.days }} дн.
+      {% if p.withdrawal_days %}<small>(молоко/мясо не использовать {{ p.withdrawal_days }} дн.)</small>{% endif %}</p>{% endfor %}
+  </section>{% endif %}
+</div>
+{% endblock %}
+{% block modals %}
+<dialog class="modal" id="cancel-modal"><form method="post" action="{% url 'consultations:cancel' c.pk %}" class="modal-body">
+  {% csrf_token %}<header><h3>Отменить консультацию?</h3><button type="button" class="x" data-close>×</button></header>
+  <p>Врач получит уведомление об отмене.</p>
+  <footer><button type="button" class="btn ghost" data-close>Нет</button><button class="btn danger">Да, отменить</button></footer>
+</form></dialog>
+{% endblock %}

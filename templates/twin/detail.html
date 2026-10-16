@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Двойник: {{ animal.name }}{% endblock %}
+{% block content %}
+<div class="head"><div><a href="{% url 'twin:overview' %}">← Двойник стада</a>
+  <h1>Цифровой двойник: {{ animal.name }}</h1>
+  <p class="muted"><span class="ear">{{ animal.tag }}</span> {{ animal.get_species_display }} · {{ animal.breed }} · {{ animal.farmer.farm_name }}<br>
+  Датчик {{ sensor.serial }} · установлен {{ sensor.installed|date:"d.m.Y" }} · всего показаний: {{ total_readings }}</p></div>
+  <a class="btn ghost" href="{{ animal.get_absolute_url }}">Карточка животного</a></div>
+
+<div class="stats">
+  {% for c in charts %}<div class="stat {% if c.bad %}alarm{% endif %}"><b>{{ c.now }} <small style="font-size:14px">{{ c.unit }}</small></b>
+    <span>{{ c.label }} · норма {{ c.lo }}–{{ c.hi }}</span></div>{% endfor %}
+  <div class="stat {{ assessment.level }}"><b>{{ assessment.risk }}%</b><span>риск: {{ assessment.label }}</span></div>
+</div>
+{% for f in assessment.flags %}<p class="flag">⚠ {{ f }}</p>{% endfor %}
+
+<section class="card">
+  <div class="head" style="margin-bottom:8px"><h2 style="margin:0">Показания датчика</h2>
+    <nav class="tabs" style="margin:0">
+      <a href="?hours=24" class="{% if hours == 24 %}on{% endif %}">24 часа</a>
+      <a href="?hours=48" class="{% if hours == 48 %}on{% endif %}">48 часов</a>
+      <a href="?hours=168" class="{% if hours == 168 %}on{% endif %}">7 дней</a></nav></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:18px">
+  {% for c in charts %}
+    <div><h3 style="margin:6px 0 2px">{{ c.label }}, {{ c.unit }}</h3>
+      <small class="muted">мин {{ c.min }} · сред {{ c.avg }} · макс {{ c.max }} · зелёная полоса — норма</small>
+      <canvas id="ch-{{ c.key }}" style="width:100%;height:190px"></canvas></div>
+  {% endfor %}
+  </div>
+</section>
+
+<div class="cols">
+<section class="card"><h2>Последние 24 показания</h2>
+  <table><tr><th>Время</th>{% for c in charts %}<th>{{ c.label }}</th>{% endfor %}</tr>
+  {% for t, cells in table %}<tr><td>{{ t|date:"d.m H:i" }}</td>
+    {% for v, bad in cells %}<td{% if bad %} style="color:var(--alarm);font-weight:600"{% endif %}>{{ v }}</td>{% endfor %}</tr>{% endfor %}
+  </table></section>
+<section class="card"><h2>Что будет через сутки?</h2>
+  <nav class="tabs"><a href="?hours={{ hours }}&mode=none" class="{% if mode == 'none' %}on{% endif %}">Без лечения</a>
+    <a href="?hours={{ hours }}&mode=now" class="{% if mode == 'now' %}on{% endif %}">Начать лечение сейчас</a></nav>
+  {% with f=forecast|last %}<p>Через 24 ч: температура <b>{{ f.temperature }} °C</b>, риск <b>{{ f.risk }}%</b></p>{% endwith %}
+  <canvas id="forecast" style="width:100%;height:220px"></canvas></section>
+</div>
+{{ charts|json_script:"charts-data" }}
+{{ forecast|json_script:"forecast-data" }}
+{% endblock %}
+{% block scripts %}<script>
+JSON.parse(document.getElementById("charts-data").textContent).forEach(c =>
+  lineChart("ch-" + c.key, c.values, {color: c.color, lo: c.lo, hi: c.hi}));
+lineChart("forecast", JSON.parse(document.getElementById("forecast-data").textContent).map(p => p.temperature), {color: "#c0473b"});
+</script>{% endblock %}

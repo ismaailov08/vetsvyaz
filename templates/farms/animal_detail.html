@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ animal.name }}{% endblock %}
+{% block content %}
+<div class="head">
+  <div><span class="ear">{{ animal.tag }}</span><h1>{{ animal.name }}</h1>
+    <p class="muted">{{ animal.get_species_display }} · {{ animal.breed }} · {{ animal.get_sex_display }} · {{ animal.age_text }} · {{ animal.weight_kg }} кг</p></div>
+  <div class="actions">
+    {% if user.is_farmer %}<button class="btn" data-open="book-modal">Записаться к врачу</button>
+      <a class="btn ghost" href="{% url 'farms:animal_edit' animal.pk %}">Изменить</a>{% endif %}
+    {% if user.is_vet %}<button class="btn" data-open="vacc-modal">Отметить прививку</button>{% endif %}
+    {% if assessment %}<a class="btn ghost" href="{% url 'twin:detail' animal.pk %}">Цифровой двойник</a>{% endif %}
+  </div>
+</div>
+<div class="cols">
+  <section class="card">
+    <h2>Состояние</h2>
+    <p><span class="pill {{ animal.status }}">{{ animal.get_status_display }}</span>
+    {% if assessment %}<span class="pill {{ assessment.level }}">Двойник: {{ assessment.label }}, риск {{ assessment.risk }}%</span>{% endif %}</p>
+    {% for f in assessment.flags %}<p class="flag">⚠ {{ f }}</p>{% endfor %}
+  </section>
+  <section class="card">
+    <h2>Вакцинации</h2>
+    <table><tr><th>Вакцина</th><th>Сделана</th><th>Следующая</th></tr>
+    {% for v in vaccinations %}<tr><td>{{ v.vaccine }}</td><td>{{ v.done_on|date:"d.m.Y" }}</td>
+      <td><span class="pill {{ v.state }}">{{ v.next_on|date:"d.m.Y" }}</span></td></tr>
+    {% empty %}<tr><td colspan="3" class="muted">Прививок пока нет</td></tr>{% endfor %}</table>
+  </section>
+</div>
+<section class="card">
+  <h2>История болезни</h2>
+  {% for c in history %}
+    <article class="history"><b>{{ c.scheduled_at|date:"d.m.Y" }} — {{ c.diagnosis }}</b> <span class="muted">({{ c.vet }})</span>
+      <p>{{ c.conclusion }}</p>
+      {% for p in c.prescriptions.all %}<span class="pill">{{ p.drug }}, {{ p.dose }}, {{ p.days }} дн.</span>{% endfor %}
+    </article>
+  {% empty %}<p class="muted">Завершённых консультаций нет.</p>{% endfor %}
+</section>
+{% endblock %}
+{% block modals %}
+  {% if user.is_vet %}{% url 'farms:add_vaccination' animal.pk as vacc_url %}
+    {% include "includes/_modal.html" with id="vacc-modal" title="Отметить вакцинацию" action=vacc_url form=vaccination_form submit="Внести" %}{% endif %}
+  {% if user.is_farmer %}{% url 'consultations:create' as book_url %}
+    {% include "includes/_modal.html" with id="book-modal" title="Запись к ветврачу" action=book_url form=book_form submit="Записаться" next=request.path %}{% endif %}
+{% endblock %}

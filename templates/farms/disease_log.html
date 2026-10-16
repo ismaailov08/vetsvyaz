@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Журнал болезней{% endblock %}
+{% block content %}
+<div class="head"><div><h1>Журнал болезней</h1>
+  <p class="muted">Кто болеет сейчас и вся история диагнозов по {% if user.is_farmer %}вашему хозяйству{% else %}всем хозяйствам{% endif %}</p></div></div>
+
+<div class="stats">
+  <div class="stat"><b>{{ stats.animals }}</b><span>животных в базе</span></div>
+  <div class="stat warn"><b>{{ stats.treatment }}</b><span>на лечении</span></div>
+  <div class="stat alarm"><b>{{ stats.quarantine }}</b><span>в карантине</span></div>
+  <div class="stat"><b>{{ stats.cases }}</b><span>случаев в истории</span></div>
+</div>
+
+<div class="cols">
+  <section class="card" style="grid-column: span 2">
+    <h2>Сейчас болеют</h2>
+    <table>
+      <tr><th>Животное</th><th>Вид</th><th>Хозяйство</th><th>Диагноз</th><th>С какого дня</th><th>Статус</th></tr>
+      {% for a, c in sick %}
+      <tr><td><a href="{{ a.get_absolute_url }}"><b>{{ a.name }}</b></a><br><span class="ear" style="white-space:nowrap">{{ a.tag }}</span></td>
+        <td>{{ a.get_species_display }}<br><small class="muted">{{ a.breed }}</small></td>
+        <td>{{ a.farmer.farm_name }}</td>
+        <td>{{ c.diagnosis|default:"—" }}</td>
+        <td>{{ c.scheduled_at|date:"d.m.Y"|default:"—" }}</td>
+        <td><span class="pill {{ a.status }}">{{ a.get_status_display }}</span></td></tr>
+      {% empty %}<tr><td colspan="6" class="muted">Больных животных нет</td></tr>{% endfor %}
+    </table>
+  </section>
+  <section class="card">
+    <h2>Чаще всего болеют</h2>
+    {% for t in top %}<div class="row"><span class="pill">{{ t.n }}</span><span>{{ t.diagnosis }}</span></div>
+    {% empty %}<p class="muted">Нет данных</p>{% endfor %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>История болезней</h2>
+  <form class="filters" method="get">
+    <input name="q" value="{{ request.GET.q }}" placeholder="Кличка, бирка, диагноз или хозяйство">
+    <select name="species"><option value="">Все виды</option>
+      {% for v, l in species_choices %}<option value="{{ v }}" {% if request.GET.species == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select><button class="btn ghost">Найти</button>
+  </form>
+  <table>
+    <tr><th>Дата</th><th>Животное</th><th>Хозяйство</th><th>Диагноз и заключение</th><th>Назначения</th><th>Врач</th></tr>
+    {% for c in history %}
+    <tr><td>{{ c.scheduled_at|date:"d.m.Y" }}</td>
+      <td><a href="{{ c.animal.get_absolute_url }}"><b>{{ c.animal.name }}</b></a><br><small class="muted">{{ c.animal.get_species_display }} · {{ c.animal.tag }}</small></td>
+      <td>{{ c.farmer.farm_name }}</td>
+      <td><b>{{ c.diagnosis }}</b><br><small class="muted">{{ c.conclusion|truncatechars:110 }}</small></td>
+      <td>{% for p in c.prescriptions.all %}<div><small>💊 {{ p.drug }}, {{ p.days }} дн.{% if p.withdrawal_days %} · ожидание {{ p.withdrawal_days }} дн.{% endif %}</small></div>{% empty %}<small class="muted">без препаратов</small>{% endfor %}</td>
+      <td><small>{{ c.vet }}</small></td></tr>
+    {% empty %}<tr><td colspan="6" class="muted">Записей не найдено</td></tr>{% endfor %}
+  </table>
+</section>
+{% endblock %}

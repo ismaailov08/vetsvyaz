@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Ветеринарная телемедицина{% endblock %}
+{% block content %}
+<section class="card" style="padding:36px 28px;background:linear-gradient(135deg,#2f6b4f,#3f7d5c);color:#fff;border:0">
+  <div style="display:flex;align-items:center;gap:12px"><span class="logo big" style="background:#fff;color:#2f6b4f">✚</span>
+    <b style="font-size:22px">ВетСвязь</b></div>
+  <h1 style="font-size:34px;margin:18px 0 8px;max-width:760px">Ветеринарный врач для вашего хозяйства — без поездки в город</h1>
+  <p style="max-width:640px;opacity:.9">Запишитесь на видеоконсультацию, храните историю болезней и прививок стада, а цифровой двойник по данным датчиков подскажет, когда животному нужен врач.</p>
+  <div class="actions" style="margin-top:18px">
+    <a class="btn" style="background:#f2cf45;color:#3a3000" href="{% url 'accounts:register' %}">Зарегистрировать хозяйство</a>
+    <a class="btn ghost" href="{% url 'accounts:login' %}">Войти</a></div>
+</section>
+<div class="stats">
+  <div class="stat"><b>{{ stats.farms }}</b><span>хозяйств подключено</span></div>
+  <div class="stat"><b>{{ stats.animals }}</b><span>животных под наблюдением</span></div>
+  <div class="stat"><b>{{ stats.vets }}</b><span>ветеринарных врачей</span></div>
+  <div class="stat"><b>{{ stats.cases }}</b><span>проведённых консультаций</span></div>
+</div>
+<div class="cols">
+  <section class="card"><h2>Как это работает</h2>
+    <div class="row"><span class="pill">1</span><span>Фермер регистрирует хозяйство и вносит животных с номером бирки</span></div>
+    <div class="row"><span class="pill">2</span><span>Записывается к врачу на видеозвонок, чат или выезд</span></div>
+    <div class="row"><span class="pill">3</span><span>Врач ставит диагноз и выписывает назначения</span></div>
+    <div class="row"><span class="pill">4</span><span>Датчики круглосуточно следят за температурой, пульсом и активностью</span></div></section>
+  <section class="card"><h2>Наши врачи</h2>
+    {% for v in vets %}<div class="row"><b>{{ v }}</b><span class="muted">{{ v.specialization }} · хозяйств: {{ v.n }}</span></div>{% endfor %}</section>
+  <section class="card"><h2>Что доступно гостю</h2>
+    <p>Гость видит эту страницу, список врачей и общие цифры системы. Чтобы записаться к врачу и вести своё стадо, нужно зарегистрироваться.</p>
+    <a href="{% url 'accounts:register' %}">Регистрация фермера →</a></section>
+</div>
+{% endblock %}

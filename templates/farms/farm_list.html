@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Хозяйства{% endblock %}
+{% block content %}
+<div class="head"><div><h1>Хозяйства по областям и районам</h1>
+  <p class="muted">Поголовье каждого хозяйства по видам животных и сколько сейчас болеет</p></div></div>
+<div class="stats">
+  <div class="stat"><b>{{ all_oblasts|length }}</b><span>областей</span></div>
+  <div class="stat"><b>{{ district_count }}</b><span>районов</span></div>
+  <div class="stat"><b>{{ farm_count }}</b><span>хозяйств</span></div>
+  <div class="stat"><b>{{ totals.total }}</b><span>голов скота</span></div>
+  <div class="stat warn"><b>{{ totals.sick }}</b><span>болеют сейчас</span></div>
+</div>
+<nav class="tabs" style="flex-wrap:wrap">
+  <a href="?" class="{% if not selected %}on{% endif %}">Все области</a>
+  {% for o in all_oblasts %}<a href="?oblast={{ o.name|urlencode }}" class="{% if selected == o.name %}on{% endif %}">{{ o.name }} · {{ o.total }}</a>{% endfor %}
+</nav>
+{% for o in oblasts %}
+<section class="card">
+  <div class="head" style="margin-bottom:6px"><div><h2 style="margin:0;font-size:21px">🗺 {{ o.name }}</h2>
+    <p class="muted" style="margin:4px 0 0">{{ o.districts|length }} р-н · {{ o.farms|length }} хоз. · {{ o.total }} голов{% for label, n in o.species %} · {{ label }}: {{ n }}{% endfor %}</p></div>
+    {% if o.sick %}<span class="pill treatment">болеют: {{ o.sick }}</span>{% else %}<span class="pill">все здоровы</span>{% endif %}</div>
+  {% for d in o.districts %}
+  <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">
+    <h3 style="margin:0 0 8px">📍 {{ d.name }} <small class="muted" style="font-weight:400">· {{ d.total }} голов{% for label, n in d.species %} · {{ label }}: {{ n }}{% endfor %}{% if d.sick %} · болеют: {{ d.sick }}{% endif %}</small></h3>
+    <div class="cards">
+    {% for f in d.farms %}
+      <a class="card animal" href="{% url 'farms:farm_detail' f.pk %}" style="margin:0">
+        <h3>{{ f.farm_name }}</h3>
+        <p class="muted">{{ f.user.get_full_name }} · {{ f.user.phone|default:"—" }}</p>
+        <p><b style="font-size:24px">{{ f.total }}</b> <span class="muted">голов</span></p>
+        <div>{% for label, n in f.herd %}<span class="pill">{{ label }}: {{ n }}</span>{% endfor %}</div>
+        {% if f.sick %}<span class="pill treatment">болеют: {{ f.sick }}</span>{% else %}<span class="pill">все здоровы</span>{% endif %}
+      </a>
+    {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

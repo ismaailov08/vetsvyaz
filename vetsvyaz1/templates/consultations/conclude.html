@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Заключение{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Заключение: {{ c.animal.name }}</h1>
+  <p class="muted">Жалоба: {{ c.complaint }}</p>
+  <form method="post">{% csrf_token %}
+    {% for field in form %}{% include "includes/_field.html" %}{% endfor %}
+    <h2>Назначения</h2>
+    {{ formset.management_form }}
+    <table class="formset"><tr><th>Препарат</th><th>Доза</th><th>Дней</th><th>Ожидание</th><th>Удалить</th></tr>
+    {% for f in formset %}<tr>{% for h in f.hidden_fields %}{{ h }}{% endfor %}
+      <td>{{ f.drug }}{{ f.drug.errors }}</td><td>{{ f.dose }}</td><td>{{ f.days }}{{ f.days.errors }}</td>
+      <td>{{ f.withdrawal_days }}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</table>
+    <div class="actions"><a class="btn ghost" href="{{ c.get_absolute_url }}">Назад</a><button class="btn">Завершить консультацию</button></div>
+  </form>
+</section>
+{% endblock %}

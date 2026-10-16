@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Цифровой двойник{% endblock %}
+{% block content %}
+<div class="head"><div><h1>Цифровой двойник стада</h1>
+  <p class="muted">Ошейники и болюсы присылают показания раз в час. Система сравнивает их с нормой вида и считает риск.</p></div></div>
+<div class="stats">
+  <div class="stat"><b>{{ total }}</b><span>животных с датчиками</span></div>
+  <div class="stat alarm"><b>{{ counts.alarm }}</b><span>тревога</span></div>
+  <div class="stat warn"><b>{{ counts.watch }}</b><span>наблюдение</span></div>
+  <div class="stat"><b>{{ counts.ok }}</b><span>норма</span></div>
+</div>
+<form class="filters" method="get" style="flex-wrap:wrap">
+  <input name="q" value="{{ request.GET.q }}" placeholder="Кличка, бирка или хозяйство">
+  <select name="species"><option value="">Все виды</option>
+    {% for v, l in species_choices %}<option value="{{ v }}" {% if request.GET.species == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <select name="level"><option value="">Любой риск</option>
+    {% for v, l in levels %}<option value="{{ v }}" {% if request.GET.level == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <button class="btn ghost">Показать</button>
+</form>
+<div class="cards">
+{% for a, s, r in page %}
+  <a class="card animal" href="{% url 'twin:detail' a.pk %}" style="margin:0">
+    <span class="ear">{{ a.tag }}</span><h3>{{ a.name }}</h3>
+    <p class="muted" style="margin:0 0 6px">{{ a.get_species_display }} · {{ a.farmer.farm_name }}</p>
+    <div class="row" style="border:0;padding:2px 0;gap:14px;font-size:14px">
+      <span>🌡 <b>{{ r.temperature }}</b>°</span><span>❤ <b>{{ r.heart_rate }}</b></span>
+      <span>👣 <b>{{ r.activity }}</b></span><span>🌿 <b>{{ r.rumination }}</b></span></div>
+    <div class="meter"><i style="width:{{ s.risk }}%" class="{{ s.level }}"></i></div>
+    <span class="pill {{ s.level }}">{{ s.label }} · {{ s.risk }}%</span>
+    <small class="muted" style="display:block">обновлено {{ r.taken_at|date:"d.m H:i" }}</small></a>
+{% empty %}<p class="muted">Ничего не найдено.</p>{% endfor %}
+</div>
+{% if page.has_other_pages %}<nav class="pager" style="margin-top:16px">
+  {% if page.has_previous %}<a href="?{{ params }}&page={{ page.previous_page_number }}">←</a>{% endif %}
+  <span>стр. {{ page.number }} из {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?{{ params }}&page={{ page.next_page_number }}">→</a>{% endif %}
+</nav>{% endif %}
+{% endblock %}

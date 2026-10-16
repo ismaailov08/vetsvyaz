@@ -1,0 +1,16 @@
+<header class="topbar">
+  <a class="brand" href="{% url 'farms:home' %}"><span class="logo">✚</span> ВетСвязь</a>
+  <nav class="menu">
+    <a href="{% url 'farms:home' %}">Главная</a>
+    <a href="{% url 'farms:animal_list' %}">{% if user.is_farmer %}Моё стадо{% else %}Животные{% endif %}</a>
+    <a href="{% url 'consultations:list' %}">Консультации</a>
+    <a href="{% url 'twin:overview' %}">Цифровой двойник</a>
+    <a href="{% url 'assistant:chat' %}">ИИ-помощник</a>
+    {% if user.is_district_admin %}<a href="{% url 'admin:index' %}">Админка</a>{% endif %}
+  </nav>
+  <div class="user">
+    <a class="bell" href="{% url 'notifications:inbox' %}" title="Уведомления">🔔{% if unread_count %}<b>{{ unread_count }}</b>{% endif %}</a>
+    <span class="who">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</span>
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="link">Выйти</button></form>
+  </div>
+</header>

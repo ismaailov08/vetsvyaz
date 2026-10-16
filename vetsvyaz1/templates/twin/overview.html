@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Цифровой двойник{% endblock %}
+{% block content %}
+<h1>Цифровой двойник стада</h1>
+<p class="muted">Показания ошейников-датчиков сравниваются с нормой вида. Чем выше риск — тем выше в списке.</p>
+<div class="cards">
+{% for a, s in rows %}
+  <a class="card animal" href="{% url 'twin:detail' a.pk %}"><span class="ear">{{ a.tag }}</span><h3>{{ a.name }}</h3>
+    <div class="meter"><i style="width:{{ s.risk|default:0 }}%" class="{{ s.level }}"></i></div>
+    <span class="pill {{ s.level }}">{{ s.label }} · {{ s.risk }}%</span></a>
+{% empty %}<p class="muted">Датчики не установлены.</p>{% endfor %}
+</div>
+{% endblock %}

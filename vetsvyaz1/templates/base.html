@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ВетСвязь{% endblock %} · ВетСвязь</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+{% if user.is_authenticated %}
+  {% include "includes/_nav.html" %}
+{% endif %}
+<main class="page">
+  {% include "includes/_messages.html" %}
+  {% block content %}{% endblock %}
+</main>
+{% block modals %}{% endblock %}
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

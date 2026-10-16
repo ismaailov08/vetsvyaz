@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<section class="auth card wide-card">
+  <h1>Регистрация фермера</h1>
+  <form method="post" class="grid2">{% csrf_token %}
+    {% for field in form %}{% include "includes/_field.html" %}{% endfor %}
+    <button class="btn wide span2">Создать аккаунт</button>
+  </form>
+  <p><a href="{% url 'accounts:login' %}">← У меня уже есть аккаунт</a></p>
+</section>
+{% endblock %}

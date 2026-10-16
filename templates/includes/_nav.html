@@ -1,0 +1,18 @@
+<header class="topbar">
+  <a class="brand" href="{% url 'farms:home' %}"><span class="logo">✚</span> ВетСвязь</a>
+  <nav class="menu">
+    <a href="{% url 'farms:home' %}">Главная</a>
+    <a href="{% url 'farms:animal_list' %}">{% if user.is_farmer %}Моё стадо{% else %}Животные{% endif %}</a>
+    <a href="{% url 'farms:farm_list' %}">{% if user.is_farmer %}Моё хозяйство{% else %}Хозяйства{% endif %}</a>
+    <a href="{% url 'farms:disease_log' %}">Журнал болезней</a>
+    <a href="{% url 'consultations:list' %}">Консультации</a>
+    <a href="{% url 'twin:overview' %}">Цифровой двойник</a>
+    <a href="https://chatgpt.com/c/6ad1ab0e-2f38-83ed-a89d-e5466c98e095" target="_blank" rel="noopener noreferrer" title="Откроется в новой вкладке">ChatGPT ↗</a>
+    {% if user.is_district_admin %}<a href="{% url 'admin:index' %}">Админка</a>{% endif %}
+  </nav>
+  <div class="user">
+    <a class="bell" href="{% url 'notifications:inbox' %}" title="Уведомления">🔔{% if unread_count %}<b>{{ unread_count }}</b>{% endif %}</a>
+    <span class="who">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</span>
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="link">Выйти</button></form>
+  </div>
+</header>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ farm.farm_name }}{% endblock %}
+{% block content %}
+<div class="head"><div>
+  {% if not user.is_farmer %}<a href="{% url 'farms:farm_list' %}">← Все хозяйства</a>{% endif %}
+  <h1>{{ farm.farm_name }}</h1>
+  <p class="muted">📍 {{ farm.district }} · владелец {{ farm.user.get_full_name }} · 📞 {{ farm.user.phone|default:"—" }}</p></div>
+  {% if user.is_farmer %}<a class="btn" href="{% url 'farms:animal_create' %}">+ Добавить животное</a>{% endif %}
+</div>
+<div class="stats">
+  <div class="stat"><b>{{ farm.total }}</b><span>голов всего</span></div>
+  {% for sp, label, n in herd %}<div class="stat"><b>{{ n }}</b><span>{{ label }}</span></div>{% endfor %}
+  <div class="stat"><b>{{ healthy }}</b><span>здоровы</span></div>
+  <div class="stat warn"><b>{{ farm.sick }}</b><span>на лечении / карантине</span></div>
+</div>
+
+<section class="card">
+  <div class="head" style="margin-bottom:8px"><h2 style="margin:0">Всё поголовье</h2>
+    <nav class="tabs" style="margin:0"><a href="?" class="{% if not species %}on{% endif %}">Все</a>
+      {% for sp, label, n in herd %}<a href="?species={{ sp }}" class="{% if species == sp %}on{% endif %}">{{ label }} · {{ n }}</a>{% endfor %}</nav></div>
+  <table>
+    <tr><th>Бирка</th><th>Кличка</th><th>Вид и порода</th><th>Пол</th><th>Возраст</th><th>Вес, кг</th><th>Последний диагноз</th><th>Статус</th></tr>
+    {% for a, last in rows %}
+    <tr><td><span class="ear" style="white-space:nowrap">{{ a.tag }}</span></td>
+      <td><a href="{{ a.get_absolute_url }}"><b>{{ a.name }}</b></a></td>
+      <td>{{ a.get_species_display }}<br><small class="muted">{{ a.breed }}</small></td>
+      <td>{{ a.get_sex_display }}</td><td>{{ a.age_text }}</td><td>{{ a.weight_kg }}</td>
+      <td>{% if last %}{{ last.diagnosis }}<br><small class="muted">{{ last.scheduled_at|date:"d.m.Y" }}</small>{% else %}<span class="muted">не болел</span>{% endif %}</td>
+      <td><span class="pill {{ a.status }}">{{ a.get_status_display }}</span></td></tr>
+    {% empty %}<tr><td colspan="8" class="muted">Животных нет</td></tr>{% endfor %}
+  </table>
+</section>
+
+<div class="cols">
+  <section class="card"><h2>Обслуживающие ветврачи</h2>
+    {% for v in vets %}<div class="row"><b>{{ v }}</b><span class="muted">{{ v.specialization }} · лицензия {{ v.license }}</span></div>
+    {% empty %}<p class="muted">Врачи не закреплены</p>{% endfor %}</section>
+  <section class="card"><h2>Последние болезни</h2>
+    {% for c in cases %}<div class="row"><span class="muted">{{ c.scheduled_at|date:"d.m.Y" }}</span><b>{{ c.animal.name }}</b><span>{{ c.diagnosis }}</span></div>
+    {% empty %}<p class="muted">Болезней не было</p>{% endfor %}</section>
+  <section class="card"><h2>Ближайшие прививки</h2>
+    {% for v in vaccinations %}<div class="row"><span class="pill {{ v.state }}">{{ v.next_on|date:"d.m.Y" }}</span><b>{{ v.animal.name }}</b><span class="muted">{{ v.vaccine }}</span></div>
+    {% empty %}<p class="muted">Нет данных</p>{% endfor %}</section>
+</div>
+{% endblock %}

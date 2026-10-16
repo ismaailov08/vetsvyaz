@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h1>Здравствуйте, {{ user.first_name|default:user.username }}!</h1>
+<div class="stats">
+  <div class="stat"><b>{{ stats.total }}</b><span>животных</span></div>
+  <div class="stat warn"><b>{{ stats.sick }}</b><span>на лечении / карантине</span></div>
+  <div class="stat"><b>{{ upcoming|length }}</b><span>ближайших консультаций</span></div>
+  <div class="stat alarm"><b>{{ alerts|length }}</b><span>сигналов двойника</span></div>
+</div>
+<div class="cols">
+  <section class="card">
+    <h2>Ближайшие консультации</h2>
+    {% for c in upcoming %}
+      <a class="row" href="{{ c.get_absolute_url }}"><span>{{ c.scheduled_at|date:"d.m H:i" }}</span>
+        <b>{{ c.animal.name }}</b><span class="muted">{{ c.get_kind_display }} · {{ c.vet }}</span></a>
+    {% empty %}<p class="muted">Записей нет.</p>{% endfor %}
+  </section>
+  <section class="card">
+    <h2>Сигналы цифрового двойника</h2>
+    {% for animal, a in alerts %}
+      <a class="row" href="{% url 'twin:detail' animal.pk %}"><span class="pill {{ a.level }}">{{ a.label }} {{ a.risk }}%</span>
+        <b>{{ animal.name }}</b><span class="muted">{{ a.flags.0 }}</span></a>
+    {% empty %}<p class="muted">Все показатели в норме.</p>{% endfor %}
+  </section>
+  <section class="card">
+    <h2>Вакцинации</h2>
+    {% for v in vaccinations %}
+      <div class="row"><span class="pill {{ v.state }}">{{ v.next_on|date:"d.m.Y" }}</span><b>{{ v.animal.name }}</b>
+        <span class="muted">{{ v.vaccine }}</span></div>
+    {% empty %}<p class="muted">Нет данных.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

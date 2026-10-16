@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Изменить{% else %}Новое животное{% endif %}{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>{% if object %}Изменить: {{ object.name }}{% else %}Новое животное{% endif %}</h1>
+  <form method="post" enctype="multipart/form-data" class="grid2">{% csrf_token %}
+    {% for field in form %}{% include "includes/_field.html" %}{% endfor %}
+    <div class="span2 actions"><a class="btn ghost" href="{% url 'farms:animal_list' %}">Отмена</a>
+      <button class="btn">Сохранить</button></div>
+  </form>
+</section>
+{% endblock %}

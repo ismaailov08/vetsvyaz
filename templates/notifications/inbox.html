@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Уведомления{% endblock %}
+{% block content %}
+<div class="head"><h1>Уведомления</h1>
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}<button class="btn ghost">Прочитать все</button></form></div>
+<section class="card">
+{% for n in items %}<a class="row {% if not n.is_read %}unread{% endif %}" href="{{ n.url|default:'#' }}">
+  <span class="muted">{{ n.created|date:"d.m H:i" }}</span><span>{{ n.text }}</span></a>
+{% empty %}<p class="muted">Уведомлений нет.</p>{% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Животные{% endblock %}
+{% block content %}
+<div class="head"><h1>{% if user.is_farmer %}Моё стадо{% else %}Животные{% endif %}</h1>
+  {% if user.is_farmer %}<a class="btn" href="{% url 'farms:animal_create' %}">+ Добавить животное</a>{% endif %}</div>
+<form class="filters" method="get">
+  <input name="q" value="{{ request.GET.q }}" placeholder="Кличка, бирка или порода">
+  <select name="species"><option value="">Все виды</option>
+    {% for v, l in species_choices %}<option value="{{ v }}" {% if request.GET.species == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+  </select><button class="btn ghost">Найти</button>
+</form>
+<div class="cards">
+{% for a in animals %}
+  <a class="animal card" href="{{ a.get_absolute_url }}">
+    <span class="ear">{{ a.tag }}</span>
+    <h3>{{ a.name }}</h3>
+    <p class="muted">{{ a.get_species_display }} · {{ a.breed|default:"порода не указана" }} · {{ a.age_text }}</p>
+    <span class="pill {{ a.status }}">{{ a.get_status_display }}</span>
+  </a>
+{% empty %}<p class="muted">Животных не найдено.</p>{% endfor %}
+</div>
+{% include "includes/_pagination.html" %}
+{% endblock %}
