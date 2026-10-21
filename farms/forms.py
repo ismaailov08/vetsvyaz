@@ -6,7 +6,12 @@ from .models import Animal, Vaccination
 
 
 class DateInput(forms.DateInput):
+    """Поле <input type="date">. Браузер принимает дату только в формате ГГГГ-ММ-ДД,
+    иначе при изменении записи поле оказывается пустым."""
     input_type = "date"
+
+    def __init__(self, attrs=None, format="%Y-%m-%d"):
+        super().__init__(attrs, format=format)
 
 
 class AnimalForm(forms.ModelForm):
@@ -23,6 +28,22 @@ class AnimalForm(forms.ModelForm):
         if tag.startswith("KZ") and not tag.startswith("KZ "):
             tag = "KZ " + tag[2:].strip()
         return tag
+
+    def clean_photo(self):
+        """Фото: не больше 5 МБ и только JPG, PNG или WEBP."""
+        photo = self.cleaned_data.get("photo")
+        if photo and hasattr(photo, "size"):
+            if photo.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Фото больше 5 МБ – уменьшите размер")
+            if not photo.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                raise forms.ValidationError("Загрузите фото в формате JPG, PNG или WEBP")
+        return photo
+
+    def clean_weight_kg(self):
+        w = self.cleaned_data["weight_kg"]
+        if w is not None and not (1 <= w <= 1500):
+            raise forms.ValidationError("Вес должен быть от 1 до 1500 кг")
+        return w
 
     def clean_born(self):
         born = self.cleaned_data["born"]

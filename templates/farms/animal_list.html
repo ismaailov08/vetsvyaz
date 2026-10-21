@@ -12,6 +12,7 @@
 <div class="cards">
 {% for a in animals %}
   <a class="animal card" href="{{ a.get_absolute_url }}">
+    {% if a.photo %}<img class="thumb" src="{{ a.photo.url }}" alt="{{ a.name }}">{% endif %}
     <span class="ear">{{ a.tag }}</span>
     <h3>{{ a.name }}</h3>
     <p class="muted">{{ a.get_species_display }} · {{ a.breed|default:"порода не указана" }} · {{ a.age_text }}</p>

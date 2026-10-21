@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Удаление: {{ animal.name }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width:640px">
+  <div class="card border-danger">
+    <h1 class="h4 text-danger mb-3">Удалить животное?</h1>
+    <p><span class="ear">{{ animal.tag }}</span> <b>{{ animal.name }}</b> · {{ animal.get_species_display }} · {{ animal.breed }}</p>
+    <div class="alert alert-danger" role="alert">
+      Вместе с животным будут удалены:
+      <ul class="mb-0">
+        <li>прививки – {{ related.vaccinations }}</li>
+        <li>консультации и назначения – {{ related.consultations }}</li>
+        <li>датчик цифрового двойника и его показания</li>
+      </ul>
+    </div>
+    <form method="post" class="d-flex gap-2 justify-content-end">{% csrf_token %}
+      <a class="btn btn-outline-secondary" href="{% url 'farms:animal_detail' animal.pk %}">Отмена</a>
+      <button type="submit" class="btn btn-danger">Да, удалить</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -8,7 +8,7 @@
 
 - **Роли:** гость, фермер, ветеринарный врач, администратор района.
 - **Хозяйства** по областям и районам, поголовье по видам, закреплённые врачи (связь Many-to-Many).
-- **Животные** с биркой ИНЖ (KZ 0000 0000), прививками и историей болезней.
+- **Животные** с биркой ИНЖ (KZ 0000 0000), прививками и историей болезней; полный CRUD: добавление, просмотр, изменение, удаление с подтверждением.
 - **Консультации:** запись к врачу во всплывающем окне, видеозвонок, заключение с назначениями, печатная форма.
 - **Журнал болезней:** кто болеет сейчас, частые диагнозы, история с поиском.
 - **Цифровой двойник:** показания датчиков за 7 дней (температура, пульс, активность, жвачка), оценка риска, прогноз «что если».
@@ -18,7 +18,7 @@
 
 ## Технологии
 
-Python 3.12+, Django 5.2, Django REST Framework 3.18, Pillow, SQLite.
+Python 3.12+, Django 5.2, Django REST Framework 3.18, Pillow, SQLite, Bootstrap 5.3 (локально в `static/vendor/bootstrap`).
 
 ## Установка и запуск (Windows, PowerShell)
 
@@ -75,8 +75,24 @@ vetsvyaz/
 
 ## Тесты
 
+24 автоматических теста: модели, формы (бирка, телефон, email), права доступа, CRUD, сигналы, двойник, API.
+
 ```powershell
 python manage.py test
+```
+
+## Дамп базы данных
+
+Готовый дамп демо-данных лежит в `dumps/db_dump.json` (без почасовых показаний датчиков — их создаёт `seed_twin`).
+
+```powershell
+# сделать дамп своей базы
+python -X utf8 manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.permission -e sessions -e admin.logentry -e twin.reading --indent 2 -o dumps/db_dump.json
+
+# загрузить дамп в пустую базу
+python manage.py migrate
+python -X utf8 manage.py loaddata dumps/db_dump.json
+python manage.py seed_twin
 ```
 
 ## Планы (СРС 4)

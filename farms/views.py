@@ -4,7 +4,8 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from accounts.models import User
 from accounts.permissions import RoleRequiredMixin, visible_animals, visible_consultations
@@ -104,6 +105,28 @@ class AnimalUpdateView(RoleRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return visible_animals(self.request.user)
+
+
+class AnimalDeleteView(RoleRequiredMixin, DeleteView):
+    """Удаление животного (D в CRUD). Фермер удаляет только своих животных.
+    GET – страница подтверждения, POST – удаление вместе с прививками,
+    консультациями и показаниями датчика (on_delete=CASCADE)."""
+    roles = (User.Role.FARMER,)
+    template_name = "farms/animal_confirm_delete.html"
+    success_url = reverse_lazy("farms:animal_list")
+
+    def get_queryset(self):
+        return visible_animals(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        a = self.object
+        ctx["related"] = {"vaccinations": a.vaccinations.count(), "consultations": a.consultations.count()}
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Животное {self.object.tag} «{self.object.name}» удалено")
+        return super().form_valid(form)
 
 
 @login_required

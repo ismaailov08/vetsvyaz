@@ -31,6 +31,14 @@ class AnimalModelTests(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertTrue(Animal.objects.filter(tag="KZ 0217 4583").exists())
 
+    def test_form_rejects_bad_weight_and_future_date(self):
+        from .forms import AnimalForm
+        f = AnimalForm(data={"tag": "KZ 0217 4583", "name": "Зорька", "species": "cattle", "sex": "F",
+                             "born": date.today() + timedelta(days=5), "weight_kg": "2000"})
+        self.assertFalse(f.is_valid())
+        self.assertIn("weight_kg", f.errors)
+        self.assertIn("born", f.errors)
+
     def test_vaccination_state(self):
         a = Animal.objects.create(farmer=self.farmer, tag="KZ 0217 4583", name="Зорька", species="cattle",
                                   sex="F", born=date(2021, 3, 14), weight_kg=480)
@@ -47,6 +55,38 @@ class AnimalAccessTests(TestCase):
         self.client.login(username="farmer", password="pass12345")
         r = self.client.get(reverse("farms:animal_detail", args=[a.pk]))
         self.assertEqual(r.status_code, 404)
+
+
+class AnimalDeleteTests(TestCase):
+    """CRUD: удаление животного."""
+
+    def setUp(self):
+        self.farmer, self.other = make_farmer("farmer"), make_farmer("other")
+        self.cow = Animal.objects.create(farmer=self.farmer, tag="KZ 0217 4583", name="Зорька", species="cattle",
+                                         sex="F", born=date(2021, 3, 1), weight_kg=480)
+        Vaccination.objects.create(animal=self.cow, vaccine="Ящур", done_on=date.today(),
+                                   next_on=date.today() + timedelta(days=180))
+
+    def test_owner_sees_confirmation_and_deletes(self):
+        self.client.login(username="farmer", password="pass12345")
+        url = reverse("farms:animal_delete", args=[self.cow.pk])
+        self.assertContains(self.client.get(url), "Удалить животное?")
+        r = self.client.post(url)
+        self.assertRedirects(r, reverse("farms:animal_list"))
+        self.assertFalse(Animal.objects.filter(pk=self.cow.pk).exists())
+        self.assertFalse(Vaccination.objects.filter(animal_id=self.cow.pk).exists())  # каскадное удаление
+
+    def test_other_farmer_cannot_delete(self):
+        self.client.login(username="other", password="pass12345")
+        r = self.client.post(reverse("farms:animal_delete", args=[self.cow.pk]))
+        self.assertEqual(r.status_code, 404)
+        self.assertTrue(Animal.objects.filter(pk=self.cow.pk).exists())
+
+    def test_guest_is_sent_to_login(self):
+        r = self.client.post(reverse("farms:animal_delete", args=[self.cow.pk]))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/accounts/login/", r["Location"])
+        self.assertTrue(Animal.objects.filter(pk=self.cow.pk).exists())
 
 
 def make_world():

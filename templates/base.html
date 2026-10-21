@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}ВетСвязь{% endblock %} · ВетСвязь</title>
+  <!-- Bootstrap 5.3 (локальная копия в static/vendor, работает и без интернета) -->
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
@@ -15,6 +17,7 @@
   {% block content %}{% endblock %}
 </main>
 {% block modals %}{% endblock %}
+<script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
 {% block scripts %}{% endblock %}
 </body>

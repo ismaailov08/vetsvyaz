@@ -2,11 +2,13 @@
 {% block title %}{{ animal.name }}{% endblock %}
 {% block content %}
 <div class="head">
-  <div><span class="ear">{{ animal.tag }}</span><h1>{{ animal.name }}</h1>
+  {% if animal.photo %}<img class="photo" src="{{ animal.photo.url }}" alt="Фото: {{ animal.name }}">{% endif %}
+  <div class="flex-grow-1"><span class="ear">{{ animal.tag }}</span><h1>{{ animal.name }}</h1>
     <p class="muted">{{ animal.get_species_display }} · {{ animal.breed }} · {{ animal.get_sex_display }} · {{ animal.age_text }} · {{ animal.weight_kg }} кг</p></div>
   <div class="actions">
     {% if user.is_farmer %}<button class="btn" data-open="book-modal">Записаться к врачу</button>
-      <a class="btn ghost" href="{% url 'farms:animal_edit' animal.pk %}">Изменить</a>{% endif %}
+      <a class="btn ghost" href="{% url 'farms:animal_edit' animal.pk %}">Изменить</a>
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Удалить</button>{% endif %}
     {% if user.is_vet %}<button class="btn" data-open="vacc-modal">Отметить прививку</button>{% endif %}
     {% if assessment %}<a class="btn ghost" href="{% url 'twin:detail' animal.pk %}">Цифровой двойник</a>{% endif %}
   </div>
@@ -37,6 +39,27 @@
 </section>
 {% endblock %}
 {% block modals %}
+{% if user.is_farmer %}
+<!-- Окно подтверждения удаления: компонент Modal из Bootstrap 5 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" action="{% url 'farms:animal_delete' animal.pk %}">{% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Удалить животное?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <p><span class="ear">{{ animal.tag }}</span> <b>{{ animal.name }}</b></p>
+        <div class="alert alert-danger mb-0" role="alert">Вместе с животным будут удалены его прививки, консультации и показания датчика. Отменить это действие нельзя.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-danger">Удалить</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
   {% if user.is_vet %}{% url 'farms:add_vaccination' animal.pk as vacc_url %}
     {% include "includes/_modal.html" with id="vacc-modal" title="Отметить вакцинацию" action=vacc_url form=vaccination_form submit="Внести" %}{% endif %}
   {% if user.is_farmer %}{% url 'consultations:create' as book_url %}

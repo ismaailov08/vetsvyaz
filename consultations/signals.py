@@ -10,6 +10,8 @@ from .models import Consultation
 @receiver(post_save, sender=Consultation)
 def consultation_saved(sender, instance, created, **kwargs):
     """Сигнал: после сохранения консультации отправляем уведомления."""
+    if kwargs.get("raw"):  # загрузка из дампа (loaddata) – уведомления не создаём
+        return
     url = instance.get_absolute_url()
     if created:
         notify(instance.vet.user, f"Новая запись: {instance.animal.name}, "
